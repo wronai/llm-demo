@@ -1,7 +1,8 @@
-.PHONY: help install build up down stop restart logs clean test lint format check-env \
+.PHONY: help install build up down stop restart logs clean test lint format typecheck check-env \
 	model-install model-create model-run model-push model-pull model-list \
-	venv venv-clean deps deps-update \
-	open open-ui open-ollama open-docs
+	venv venv-clean deps deps-update install-dev install-ci \
+	open open-ui open-ollama open-docs \
+	publish test-publish docs coverage
 
 # Default target
 help:
@@ -11,6 +12,8 @@ help:
 	@echo "    make deps           Install Python dependencies"
 	@echo "    make deps-update    Update all Python dependencies"
 	@echo "    make venv-clean     Remove virtual environment"
+	@echo "    make install-dev    Install package in development mode"
+	@echo "    make install-ci     Install package for CI environment"
 
 	@echo "\n  Docker & Services:"
 	@echo "    make build          Build Docker containers"
@@ -32,10 +35,18 @@ help:
 	@echo "    make model-list     List available models"
 
 	@echo "\n  Development:"
-	@echo "    make test           Run tests"
-	@echo "    make lint           Run linter"
-	@echo "    make format         Format code"
+	@echo "    make test           Run tests with coverage"
+	@echo "    make test-fast      Run tests quickly without coverage"
+	@echo "    make lint           Run linters (flake8, black, isort)"
+	@echo "    make format         Format code with black and isort"
+	@echo "    make typecheck      Run static type checking with mypy"
+	@echo "    make coverage       Generate and open coverage report"
 	@echo "    make docs           Generate documentation"
+
+	@echo "\n  Package Publishing:"
+	@echo "    make build-pkg      Build source and wheel package"
+	@echo "    make test-publish   Upload package to test PyPI"
+	@echo "    make publish        Upload package to PyPI"
 
 	@echo "\n  Shell Access:"
 	@echo "    make shell-ollama   Open shell in Ollama container"
@@ -46,6 +57,7 @@ help:
 	@echo "    make open-ui        Open Streamlit UI in browser"
 	@echo "    make open-ollama    Open Ollama API in browser"
 	@echo "    make open-docs      Open documentation in browser"
+	@echo "    make open-coverage  Open coverage report in browser"
 
 # Check if .env file exists
 check-env:
@@ -70,15 +82,28 @@ venv-clean:
 deps: venv
 	@echo "Installing Python dependencies..."
 	. .venv/bin/activate && \
-	pip install --upgrade pip && \
+	pip install --upgrade pip setuptools wheel && \
 	pip install -r requirements.txt -r model_requirements.txt
 
 deps-update: venv
 	@echo "Updating Python dependencies..."
 	. .venv/bin/activate && \
-	pip install --upgrade pip && \
-	pip freeze --local | grep -v '^\\.' | cut -d = -f 1 | xargs -n1 pip install -U && \
-	pip install -r requirements.txt -r model_requirements.txt
+	pip install --upgrade pip setuptools wheel && \
+	pip install -U -r requirements.txt -r model_requirements.txt
+
+# Install package in development mode
+install-dev: deps
+	@echo "Installing package in development mode..."
+	. .venv/bin/activate && \
+	pip install -e .[dev] && \
+	pre-commit install
+
+# Install for CI environment
+install-ci:
+	@echo "Installing for CI environment..."
+	pip install --upgrade pip setuptools wheel && \
+	pip install -e .[dev] && \
+	pip install pytest-cov
 
 # Build Docker containers
 build: check-env
@@ -162,26 +187,64 @@ model-list:
 	ollama list
 
 # Development
-test:
-	@echo "Running tests..."
+test: install-dev
+	@echo "Running tests with coverage..."
+	. .venv/bin/activate && \
+	pytest --cov=wronai --cov-report=term-missing -v tests/
+
+test-fast: install-dev
+	@echo "Running tests quickly..."
 	. .venv/bin/activate && \
 	pytest -v tests/
 
-lint:
-	@echo "Running linter..."
+lint: install-dev
+	@echo "Running linters..."
 	. .venv/bin/activate && \
-	flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics && \
-	flake8 . --count --max-complexity=10 --max-line-length=127 --statistics
+	echo "\n=== black ===\n" && \
+	black --check --diff . && \
+	echo "\n=== isort ===\n" && \
+	isort --check-only --diff . && \
+	echo "\n=== flake8 ===\n" && \
+	flake8 wronai/ tests/ && \
+	echo "\n✅ All checks passed!"
 
-format:
+format: install-dev
 	@echo "Formatting code..."
 	. .venv/bin/activate && \
 	black . && \
 	isort .
 
-docs:
+typecheck: install-dev
+	@echo "Running type checking..."
+	. .venv/bin/activate && \
+	mypy wronai/
+
+coverage: test
+	@echo "Generating coverage report..."
+	. .venv/bin/activate && \
+	coverage html && \
+	python -m webbrowser -t "htmlcov/index.html"
+
+docs: install-dev
 	@echo "Generating documentation..."
-	@# Add documentation generation command here
+	. .venv/bin/activate && \
+	cd docs && make html
+
+# Package building and publishing
+build-pkg: clean
+	@echo "Building source and wheel package..."
+	. .venv/bin/activate && \
+	python -m build
+
+publish: build-pkg
+	@echo "Uploading package to PyPI..."
+	. .venv/bin/activate && \
+	twine upload dist/*
+
+test-publish: build-pkg
+	@echo "Uploading package to TestPyPI..."
+	. .venv/bin/activate && \
+	twine upload --repository testpypi dist/*
 
 # Open shell in Ollama container
 shell-ollama:

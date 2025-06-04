@@ -12,25 +12,39 @@ tags:
 - python
 - iac
 ---
-# 🚀 WronAI - Własny model językowy po polsku
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+# 🚀 WronAI - End-to-End LLM Toolkit
 
-![WronAI Demo](img.png)
+[![PyPI Version](https://img.shields.io/pypi/v/wronai.svg)](https://pypi.org/project/wronai/)
+[![Python Version](https://img.shields.io/pypi/pyversions/wronai.svg)](https://python.org)
+[![License](https://img.shields.io/pypi/l/wronai.svg)](https://github.com/wronai/llm-demo/blob/main/LICENSE)
+[![Tests](https://github.com/wronai/llm-demo/actions/workflows/tests.yml/badge.svg)](https://github.com/wronai/llm-demo/actions)
+[![Code Style](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-Kompletne narzędzie do tworzenia, dostrajania i wdrażania własnych modeli językowych opartych na Mistral 7B, z pełnym wsparciem dla języka polskiego.
+> Kompletne narzędzie do tworzenia, dostrajania i wdrażania własnych modeli językowych opartych na Mistral 7B, z pełnym wsparciem dla języka polskiego.
+
+WronAI to kompleksowe narzędzie do budowania, dostrajania i wdrażania dużych modeli językowych (LLM) z obsługą Hugging Face i Ollama.
 
 ## 📋 Spis treści
-- [Szybki start](#-szybki-start)
-- [Funkcje](#-funkcje)
-- [Wymagania](#-wymagania)
-- [Instalacja](#-instalacja)
-- [Użycie](#-użycie)
-- [Struktura projektu](#-struktura-projektu)
-- [Przykłady użycia](#-przykłady-użycia)
-- [Wdrażanie](#-wdrażanie)
-- [Licencja](#-licencja)
+- [🌟 Funkcje](#-funkcje)
+- [🚀 Szybki start](#-szybki-start)
+  - [Wymagania wstępne](#wymagania-wstępne)
+  - [Instalacja](#instalacja)
+- [💻 Użycie](#-użycie)
+  - [Przykłady użycia](#przykłady-użycia)
+  - [Dostosowywanie modelu](#dostosowywanie-modelu)
+- [🛠️ Rozwój](#-rozwój)
+- [📄 Licencja](#-licencja)
+- [📧 Kontakt](#-kontakt)
+
+## 🌟 Funkcje
+
+- **Gotowy model WronAI** - Działa od razu po zainstalowaniu
+- **Dostosowywanie** - Możliwość dostrojenia pod własne potrzeby
+- **Obsługa wielu modeli** - Wsparcie dla modeli Hugging Face i Ollama
+- **Optymalizacje** - 4-bitowa kwantyzacja, LoRA, FP16
+- **Interfejs CLI** - Łatwe w użyciu narzędzia wiersza poleceń
+- **Gotowy do produkcji** - Łatwe wdrożenie z Dockerem
 
 ## 🚀 Szybki start
 
@@ -40,26 +54,144 @@ Kompletne narzędzie do tworzenia, dostrajania i wdrażania własnych modeli ję
 - CUDA (opcjonalne, do akceleracji GPU)
 
 ### Instalacja
+
+#### Z użyciem pip
+
+```bash
+pip install wronai
+```
+
+#### Ze źródeł
+
 ```bash
 # 1. Sklonuj repozytorium
 git clone https://github.com/wronai/llm-demo.git
 cd llm-demo
 
-# 2. Utwórz i aktywuj środowisko wirtualne
-python -m venv .venv
-source .venv/bin/activate  # Linux/Mac
-# lub
-.venv\Scripts\activate    # Windows
-
-# 3. Zainstaluj zależności
-pip install -r model_requirements.txt
+# 2. Zainstaluj zależności
+pip install -e .[dev]
 ```
 
-### Uruchomienie demo
+## 💻 Użycie
+
+### Podstawowe użycie
+
+#### Uruchomienie modelu WronAI
+
 ```bash
-# Uruchom interfejs webowy
-streamlit run app/main.py
+# Upewnij się, że Ollama jest uruchomiony
+ollama serve &
+
+
+# Uruchom model
+ollama run wronai "Cześć! Jak mogę Ci pomóc?"
 ```
+
+#### Lista dostępnych modeli
+
+```bash
+ollama ls
+```
+
+### Przykłady użycia
+
+#### Rozmowa z modelem przez API
+
+```python
+import requests
+
+response = requests.post(
+    "http://localhost:11434/api/generate",
+    json={
+        "model": "wronai",
+        "prompt": "Napisz krótki wiersz o sztucznej inteligencji"
+    }
+)
+print(response.json()["response"])
+```
+
+#### Integracja z Pythonem
+
+```python
+from transformers import pipeline
+
+# Załaduj model
+pipe = pipeline("text-generation", model="wronai")
+
+# Wygeneruj tekst
+result = pipe("Jakie są zalety uczenia maszynowego?")
+print(result[0]["generated_text"])
+```
+
+### Dostosowywanie modelu
+
+1. Przygotuj dane treningowe w formacie JSONL:
+
+```json
+{"instruction": "Napisz wiadomość powitalną", "input": "", "output": "Witaj! Jak mogę Ci pomóc?"}
+{"instruction": "Wyjaśnij czym jest AI", "input": "", "output": "Sztuczna inteligencja to dziedzina informatyki..."}
+```
+
+2. Uruchom proces dostrajania:
+
+```bash
+wronai model hf train --config config.yaml --output-dir output
+```
+
+Przykładowa konfiguracja (`config.yaml`):
+
+```yaml
+model_name: "mistralai/Mistral-7B-v0.1"
+model_type: "huggingface"
+use_4bit: true
+training_args:
+  learning_rate: 2e-4
+  per_device_train_batch_size: 4
+  gradient_accumulation_steps: 4
+  num_train_epochs: 3
+  save_steps: 100
+  output_dir: "output"
+```
+
+## 🛠️ Rozwój
+
+### Konfiguracja środowiska
+
+1. Sklonuj repozytorium:
+
+```bash
+git clone https://github.com/wronai/llm-demo.git
+cd llm-demo
+```
+
+2. Zainstaluj zależności deweloperskie:
+
+```bash
+pip install -e ".[dev]"
+pre-commit install
+```
+
+### Uruchamianie testów
+
+```bash
+make test
+```
+
+### Formatowanie kodu
+
+```bash
+make format   # Automatyczne formatowanie kodu
+make lint     # Sprawdzenie stylu kodu
+make typecheck  # Sprawdzenie typów
+```
+
+## 📄 Licencja
+
+Ten projekt jest dostępny na licencji [Apache 2.0](LICENSE).
+
+## 📧 Kontakt
+
+W sprawie pytań lub wsparcia, prosimy o kontakt: [info@softreck.dev](mailto:info@softreck.dev)
 
 ## 💻 Przykłady kodu
 

@@ -2,11 +2,49 @@
 name = "wronai"
 version = "0.1.0"
 description = "End-to-end LLM model building, fine-tuning, and deployment toolkit"
+readme = "README.md"
 authors = ["WronAI Team <info@softreck.dev>"]
 license = "Apache-2.0"
-readme = "README.md"
-packages = [{include = "wronai"}]
-include = ["wronai/templates/*"]
+repository = "https://github.com/wronai/llm-demo"
+documentation = "https://github.com/wronai/llm-demo#readme"
+keywords = ["llm", "ai", "machine-learning", "huggingface", "ollama", "fine-tuning"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/wronai/llm-demo"
+"Bug Tracker" = "https://github.com/wronai/llm-demo/issues"
+"Documentation" = "https://github.com/wronai/llm-demo#readme"
+"Source Code" = "https://github.com/wronai/llm-demo"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "black>=23.7.0",
+    "isort>=5.12.0",
+    "flake8>=6.1.0",
+    "mypy>=1.5.1",
+    "pre-commit>=3.3.3",
+]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.dependencies]
 python = "^3.8"
@@ -24,21 +62,8 @@ jinja2 = "^3.1.2"
 pydantic = "^2.4.2"
 loguru = "^0.7.2"
 
-[tool.poetry.group.dev.dependencies]
-pytest = "^7.4.0"
-pytest-cov = "^4.1.0"
-black = "^23.7.0"
-isort = "^5.12.0"
-flake8 = "^6.1.0"
-mypy = "^1.5.1"
-pre-commit = "^3.3.3"
-
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
-
 [tool.poetry.scripts]
-wronai = 'wronai.cli:main'
+wronai = 'wronai.cli_new:cli'
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -53,3 +78,17 @@ include = '\.pyi?$'
 [tool.isort]
 profile = "black"
 line_length = 88
+
+[tool.coverage.run]
+source = ["wronai"]
+omit = ["tests/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "pass",
+    "raise ImportError",
+]
