@@ -50,10 +50,12 @@ down:
 	@echo "Stopping and removing all containers..."
 	docker-compose down -v
 
-# Stop all running containers
+# Stop and remove all containers and images
 stop:
-	@echo "Stopping all containers..."
-	docker-compose stop
+	@echo "Stopping and removing all containers and images..."
+	docker-compose down --rmi all --volumes --remove-orphans
+	@echo "Removing unused Docker resources..."
+	docker system prune -a -f --volumes
 
 # Restart all services
 restart: stop up
@@ -70,10 +72,13 @@ logs-ollama:
 logs-ui:
 	docker-compose logs -f streamlit-ui
 
-# Remove all containers, networks, and volumes
-clean: down
-	@echo "Removing all unused containers, networks, and volumes..."
-	docker system prune -f
+# Remove all containers, networks, volumes, and images
+clean: stop
+	@echo "Removing all unused Docker resources..."
+	docker system prune -a -f --volumes
+	@echo "Removing all unused Docker networks..."
+	docker network prune -f
+	@echo "Removing all unused Docker volumes..."
 	docker volume prune -f
 
 # Run tests
