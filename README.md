@@ -262,9 +262,17 @@ sudo python create_custom_model.py
 Zapraszamy do zgłaszania problemów i propozycji zmian poprzez Issues i Pull Requests.
 
 # Test modelu
+```
 ollama run wronai "Cześć! Kim jesteś?"
 ```
 
+```
+make model-run
+```
+
+![img_4.png](img_4.png)
+
+```
 ### Krok 6: Publikacja modelu
 
 #### **Opcja A: Ollama Registry**
