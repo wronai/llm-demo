@@ -124,10 +124,21 @@ llm-demo/
 
 ### Uruchomienie modelu WronAI
 
+Upewnij się, że Ollama jest uruchomiony
 ```bash
-# Upewnij się, że Ollama jest uruchomiony
 ollama serve &
+```
 
+```bash
+ollama ls
+```
+
+```bash
+NAME                     ID              SIZE      MODIFIED    
+wronai:latest            31e7f35ae14a    4.1 GB    3 hours ago    
+mistral:7b-instruct      f974a74358d6    4.1 GB    3 hours ago    
+codellama:7b             8fdf8f752f6e    3.8 GB    3 days ago     
+```
 
 # Uruchom model WronAI
 ollama run wronai "Cześć! Jak mogę Ci pomóc?"
