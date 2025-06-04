@@ -1,34 +1,82 @@
 # Site settings
-title: LLM DEMO -WronAI
+title: LLM DEMO - WronAI
 email: info@softreck.dev
-description: >- # this means to ignore newlines until "baseurl:"
-  Open source AI and ML projects by WronAI
+description: >-
+  Open source AI and ML projects by WronAI. Explore our latest research, models, and tools in artificial intelligence.
 author: WronAI Team
-baseurl: "" # the subpath of your site, e.g. /blog
-url: "https://wronai.github.io" # the base hostname & protocol for your site
+baseurl: ""
+url: "https://wronai.github.io"
+timezone: Europe/Warsaw
+locale: en_US
+
+# Social Media
+social:
+  name: WronAI
+  links:
+    - https://github.com/wronai
+    - https://twitter.com/wronai
+    - https://linkedin.com/company/wronai
 
 # Build settings
-theme: jekyll-theme-cayman
+markdown: kramdown
+highlighter: rouge
 plugins:
   - jekyll-feed
   - jekyll-seo-tag
+  - jekyll-sitemap
+  - jekyll-github-metadata
+
+# Theme settings
+theme: jekyll-theme-cayman
+
+# SEO settings
+seo:
+  type: Organization
+  name: WronAI
+  description: >-
+    Open source AI and ML projects by WronAI
+  image: /assets/logo.png  # Add your logo path here
+  social:
+    name: WronAI
+    links:
+      - https://github.com/wronai
+      - https://twitter.com/wronai
+      - https://linkedin.com/company/wronai
 
 # Exclude from processing
-# The following items will not be processed, by default.
-# Any item listed under the `exclude:` key here will be automatically added to the
-# internal "default list".
-#
-# Excluded items can be processed by explicitly listing the directories or
-# their entries' file path in the `include:` list.
-#
-# exclude:
-#   - .sass-cache/
-#   - .jekyll-cache/
-#   - gemfiles/
-#   - Gemfile
-#   - Gemfile.lock
-#   - node_modules/
-#   - vendor/bundle/
-#   - vendor/cache/
-#   - vendor/gems/
-#   - vendor/ruby/
+exclude:
+  - "*.gem"
+  - "*.gemspec"
+  - ".git"
+  - ".github"
+  - ".gitignore"
+  - ".sass-cache"
+  - ".jekyll-cache"
+  - "Gemfile"
+  - "Gemfile.lock"
+  - "node_modules"
+  - "vendor"
+  - "README.md"
+  - "LICENSE"
+  - "Rakefile"
+  - "*.log"
+  - "_site"
+  - "*.py"
+  - "*.pyc"
+  - "__pycache__"
+  - "*.ipynb"
+  - "*.ipynb_checkpoints"
+
+# Include files that would otherwise be excluded
+include:
+  - "assets"
+  - "CNAME"
+  - ".nojekyll"
+
+# Defaults
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: "default"
+      show_excerpts: true
