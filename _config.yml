@@ -35,7 +35,7 @@ seo:
   name: WronAI
   description: >-
     Open source AI and ML projects by WronAI
-  image: /assets/logo.png  # Add your logo path here
+  image: /wronai-logo.png  # Add your logo path here
   social:
     name: WronAI
     links:
