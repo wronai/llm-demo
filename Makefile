@@ -1,4 +1,4 @@
-.PHONY: help install build up down stop restart logs clean test lint format check-env
+.PHONY: help install build up down stop restart logs clean test lint format check-env open open-ui open-ollama
 
 # Default target
 help:
@@ -18,6 +18,9 @@ help:
 	@echo "  make format          Format code"
 	@echo "  make shell-ollama    Open shell in Ollama container"
 	@echo "  make shell-ui        Open shell in Streamlit UI container"
+	@echo "  make open           Open all services in browser"
+	@echo "  make open-ui        Open Streamlit UI in browser"
+	@echo "  make open-ollama    Open Ollama API in browser"
 
 # Check if .env file exists
 check-env:
@@ -98,3 +101,16 @@ shell-ollama:
 # Open shell in Streamlit UI container
 shell-ui:
 	docker-compose exec streamlit-ui /bin/sh
+
+# Open all services in browser
+open: open-ui open-ollama
+
+# Open Streamlit UI in browser
+open-ui:
+	@echo "Opening Streamlit UI..."
+	@xdg-open http://localhost:8501 2>/dev/null || open http://localhost:8501 2>/dev/null || start http://localhost:8501 2>/dev/null || echo "Could not open the browser. Please open http://localhost:8501 manually"
+
+# Open Ollama API in browser
+open-ollama:
+	@echo "Opening Ollama API..."
+	@xdg-open http://localhost:11436 2>/dev/null || open http://localhost:11436 2>/dev/null || start http://localhost:11436 2>/dev/null || echo "Could not open the browser. Please open http://localhost:11436 manually"
