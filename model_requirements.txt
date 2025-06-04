@@ -1,0 +1,19 @@
+# Fine-tuning requirements
+torch==2.1.0
+transformers==4.35.0
+datasets==2.14.0
+peft==0.6.0
+accelerate==0.24.0
+bitsandbytes==0.41.0
+huggingface_hub==0.17.0
+
+# For data processing
+pandas==2.0.3
+numpy==1.24.3
+
+# For model publishing
+huggingface_hub[cli]==0.17.0
+
+# Optional: for advanced training
+wandb==0.15.12
+tensorboard==2.14.0
