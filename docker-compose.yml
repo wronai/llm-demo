@@ -1,14 +1,11 @@
 version: '3.8'
 
-# Load environment variables from .env file
-env_file:
-  - .env
-
 services:
   # Ollama - LLM Engine (minimalna konfiguracja)
   ollama:
     image: ollama/ollama:latest
     container_name: ollama-engine
+    env_file: .env
     ports:
       - "${OLLAMA_PORT:-11434}:11434"
     volumes:
@@ -33,6 +30,7 @@ services:
   streamlit-ui:
     build: .
     container_name: llm-ui
+    env_file: .env
     ports:
       - "8501:8501"
     depends_on:
@@ -52,6 +50,7 @@ services:
   model-setup:
     image: ollama/ollama:latest
     container_name: model-setup
+    env_file: .env
     depends_on:
       ollama:
         condition: service_healthy
