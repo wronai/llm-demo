@@ -214,7 +214,7 @@ echo "✅ GGUF conversion completed: my_custom_model.gguf"
 def create_ollama_modelfile():
     """Tworzy Modelfile dla Ollama"""
     
-    modelfile_content = """FROM ./my_custom_model.gguf
+    modelfile_content = '''FROM ./my_custom_model.gguf
 
 # Model metadata
 PARAMETER temperature 0.7
@@ -239,11 +239,11 @@ PARAMETER num_predict 256
 PARAMETER stop "<s>"
 PARAMETER stop "[INST]"
 PARAMETER stop "[/INST]"
-"""
+'''
     
     with open("Modelfile", "w", encoding="utf-8") as f:
         f.write(modelfile_content)
-    
+    print("✅ Utworzono Modelfile dla Ollama")
     print("✅ Created Modelfile for Ollama")
 
 # === 5. PUBLIKACJA MODELU ===
@@ -253,16 +253,16 @@ def create_model_in_ollama():
     
     ollama_commands = """
 # 1. Utwórz model w Ollama
-ollama create my-custom-assistant -f Modelfile
+ollama create wronai -f Modelfile
 
 # 2. Test modelu
-ollama run my-custom-assistant "Cześć! Kim jesteś?"
+ollama run wronai "Cześć! Kim jesteś?"
 
 # 3. Push do Ollama Library (wymaga konta)
-ollama push my-custom-assistant
+ollama push wronai
 
 # 4. Alternatywnie - export do pliku
-ollama save my-custom-assistant my-custom-model.tar
+ollama save wronai wronai-model.tar
 """
     
     with open("ollama_commands.sh", "w") as f:

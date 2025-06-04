@@ -94,13 +94,70 @@ python create_custom_model.py
 ### Krok 5: Stworzenie modelu w Ollama
 ```bash
 # Utwórz Modelfile
-python create_custom_model.py  # opcja 4
+python create_custom_model.py  # wybierz opcję 4
 
 # Stwórz model w Ollama
-ollama create my-custom-assistant -f Modelfile
+ollama create wronai -f Modelfile
+
+# Uruchom model
+ollama run wronai
+```
+
+### Uruchamianie skryptu
+Skrypt `create_custom_model.py` oferuje interaktywne menu z następującymi opcjami:
+
+```bash
+python create_custom_model.py
+```
+
+Dostępne opcje:
+1. Stwórz przykładowy dataset
+2. Wykonaj fine-tuning modelu
+3. Konwertuj model do formatu GGUF
+4. Utwórz Modelfile dla Ollama
+5. Opublikuj model na Hugging Face
+6. Wykonaj pełny pipeline (1-5)
+
+### Wymagania wstępne
+- Python 3.8+
+- PyTorch z obsługą CUDA (zalecane)
+- Biblioteki wymienione w `model_requirements.txt`
+- Konto na [Hugging Face](https://huggingface.co/) (do publikacji modelu)
+
+### Rozwiązywanie problemów
+
+#### Błąd składni w skrypcie
+Jeśli napotkasz błąd składni, upewnij się, że:
+1. Używasz Pythona 3.8 lub nowszego
+2. Wszystkie zależności są zainstalowane
+3. Plik nie został uszkodzony podczas pobierania
+
+#### Problemy z zależnościami
+```bash
+# Utwórz i aktywuj środowisko wirtualne
+python -m venv .venv
+source .venv/bin/activate  # Linux/Mac
+.venv\Scripts\activate    # Windows
+
+# Zainstaluj zależności
+pip install -r model_requirements.txt
+```
+
+#### Brakujące uprawnienia
+Jeśli napotkasz problemy z uprawnieniami, spróbuj:
+```bash
+# Nadaj uprawnienia do wykonywania skryptów
+chmod +x *.sh
+
+# Uruchom z uprawnieniami administratora (jeśli potrzebne)
+sudo python create_custom_model.py
+```
+
+### Kontrybucja
+Zapraszamy do zgłaszania problemów i propozycji zmian poprzez Issues i Pull Requests.
 
 # Test modelu
-ollama run my-custom-assistant "Cześć! Kim jesteś?"
+ollama run wronai "Cześć! Kim jesteś?"
 ```
 
 ### Krok 6: Publikacja modelu
@@ -108,10 +165,10 @@ ollama run my-custom-assistant "Cześć! Kim jesteś?"
 #### **Opcja A: Ollama Registry**
 ```bash
 # Push do Ollama Library
-ollama push my-custom-assistant
+ollama push wronai
 
 # Teraz każdy może użyć:
-ollama pull your-username/my-custom-assistant
+ollama pull your-username/wronai
 ```
 
 #### **Opcja B: Hugging Face Hub**

@@ -1,17 +1,25 @@
 version: '3.8'
 
+# Load environment variables from .env file
+x-env: &env
+  env_file: .env
+  environment:
+    - OLLAMA_PORT=${OLLAMA_PORT:-11434}
+    - OLLAMA_HOST=${OLLAMA_HOST:-0.0.0.0}
+    - STREAMLIT_SERVER_PORT=${STREAMLIT_SERVER_PORT:-8501}
+    - STREAMLIT_SERVER_ADDRESS=${STREAMLIT_SERVER_ADDRESS:-0.0.0.0}
+    - DEFAULT_MODEL=${DEFAULT_MODEL:-mistral:7b-instruct}
+
 services:
   # Ollama - LLM Engine (minimalna konfiguracja)
   ollama:
     image: ollama/ollama:latest
     container_name: ollama-engine
-    env_file: .env
+    <<: *env
     ports:
-      - "11437:11434"  # Using a different port to avoid conflicts
+      - "${OLLAMA_PORT:-11434}:11434"
     volumes:
       - ollama_data:/root/.ollama
-    environment:
-      - OLLAMA_HOST=0.0.0.0
     # deploy:
       # resources:
         # reservations:
@@ -25,18 +33,20 @@ services:
   streamlit-ui:
     build: .
     container_name: llm-ui
-    env_file: .env
+    <<: *env
     ports:
-      - "8501:8501"
+      - "${STREAMLIT_SERVER_PORT:-8501}:8501"
     depends_on:
       - ollama
     environment:
-      - OLLAMA_URL=http://ollama:11434
+      - OLLAMA_URL=http://ollama:${OLLAMA_PORT:-11434}
+      - STREAMLIT_SERVER_PORT=${STREAMLIT_SERVER_PORT:-8501}
+      - STREAMLIT_SERVER_ADDRESS=${STREAMLIT_SERVER_ADDRESS:-0.0.0.0}
     restart: unless-stopped
     volumes:
       - ./app:/app
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:${STREAMLIT_SERVER_PORT:-8501}/_stcore/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -45,18 +55,19 @@ services:
   model-setup:
     image: ollama/ollama:latest
     container_name: model-setup
-    env_file: .env
+    <<: *env
     depends_on:
       - ollama
     volumes:
       - ollama_data:/root/.ollama
     environment:
       - OLLAMA_HOST=http://ollama:${OLLAMA_PORT:-11434}
+      - DEFAULT_MODEL=${DEFAULT_MODEL:-mistral:7b-instruct}
     command: >
       sh -c "
         echo 'Waiting for Ollama to be ready...' &&
         sleep 10 &&
-        ollama pull mistral:7b-instruct &&
+        ollama pull ${DEFAULT_MODEL:-mistral:7b-instruct} &&
         echo 'Model loaded successfully!'
       "
     restart: "no"
