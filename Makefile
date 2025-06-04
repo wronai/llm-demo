@@ -130,9 +130,20 @@ model-install:
 	. .venv/bin/activate && \
 	pip install -r model_requirements.txt
 
-model-create:
-	@echo "Creating Ollama model from Modelfile..."
+model-create-simple:
+	@echo "Creating Ollama model from simplified Modelfile..."
+	ollama create wronai -f Modelfile.simple
+
+model-create-full:
+	@echo "Creating Ollama model from full Modelfile..."
+	@if [ ! -f "my_custom_model.gguf" ]; then \
+		echo "Error: my_custom_model.gguf not found. Please convert your model first."; \
+		exit 1; \
+	fi
 	ollama create wronai -f Modelfile
+
+# Alias for backward compatibility
+model-create: model-create-simple
 
 model-run:
 	@echo "Running WronAI model..."
