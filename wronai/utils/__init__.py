@@ -4,6 +4,8 @@ __all__ = ["download_file", "setup_logging"]
 
 import logging
 import os
+import sys
+import types
 from pathlib import Path
 from typing import Optional, Union
 
@@ -41,7 +43,7 @@ def download_file(
 
 def setup_logging(
     level: Union[str, int] = "INFO", log_file: Optional[Union[str, Path]] = None
-):
+) -> None:
     """
     Configure logging with loguru.
 
@@ -53,10 +55,16 @@ def setup_logging(
     logger.remove()
 
     # Add console handler
+    log_format = (
+        "<green>{time:YYYY-MM-DD HH:mm:ss}</green> | "
+        "<level>{level: <8}</level> | "
+        "<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - "
+        "<level>{message}</level>"
+    )
     logger.add(
         sys.stderr,
         level=level,
-        format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
+        format=log_format,
     )
 
     # Add file handler if specified
@@ -81,9 +89,17 @@ def setup_logging(
 
 
 class InterceptHandler(logging.Handler):
-    """Intercept standard logging messages and forward them to loguru."""
+    """Intercept standard logging messages and forward them to loguru.
 
-    def emit(self, record):
+    This handler forwards all standard logging messages to the loguru logger.
+    """
+
+    def emit(self, record: logging.LogRecord) -> None:
+        """Emit a log record.
+
+        Args:
+            record: The log record to emit
+        """
         # Get corresponding Loguru level if it exists
         try:
             level = logger.level(record.levelname).name
@@ -91,8 +107,16 @@ class InterceptHandler(logging.Handler):
             level = record.levelno
 
         # Find caller from where the logged message originated
-        frame, depth = sys._getframe(6), 6
-        while frame and frame.f_code.co_filename == logging.__file__:
+        frame = sys._getframe(6)  # type: ignore[attr-defined]
+        depth = 6
+        # Skip frames from the logging module
+        while True:
+            if not hasattr(frame, "f_code") or not hasattr(frame.f_code, "co_filename"):
+                break
+            if frame.f_code.co_filename != logging.__file__:
+                break
+            if not hasattr(frame, "f_back"):
+                break
             frame = frame.f_back
             depth += 1
 

@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "wronai"
-version = "0.1.4"
+version = "0.1.6"
 description = "End-to-end LLM model building, fine-tuning, and deployment toolkit"
 authors = ["WronAI Team <info@softreck.dev>"]
 license = "Apache-2.0"

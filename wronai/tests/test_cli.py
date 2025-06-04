@@ -3,7 +3,7 @@ from click.testing import CliRunner
 from wronai.cli import main
 
 
-def test_version():
+def test_version() -> None:
     """Test the version command."""
     runner = CliRunner()
     result = runner.invoke(main, ["version"])
@@ -11,7 +11,7 @@ def test_version():
     assert "WronAI version:" in result.output
 
 
-def test_model_commands():
+def test_model_commands() -> None:
     """Test model commands."""
     runner = CliRunner()
 

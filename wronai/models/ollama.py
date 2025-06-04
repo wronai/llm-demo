@@ -2,10 +2,9 @@
 import json
 import subprocess
 from pathlib import Path
-from typing import Dict, Optional, Union
+from typing import Any, Dict, Optional, Union
 
 from loguru import logger
-from pydantic import BaseModel
 
 from .base import BaseModelManager, ModelConfig
 
@@ -23,7 +22,12 @@ class OllamaConfig(ModelConfig):
 class OllamaModelManager(BaseModelManager):
     """Manager for Ollama models."""
 
-    def __init__(self, config: Union[dict, OllamaConfig]):
+    def __init__(self, config: Union[Dict[str, Any], OllamaConfig]) -> None:
+        """Initialize the Ollama model manager.
+
+        Args:
+            config: Configuration dictionary or OllamaConfig instance
+        """
         if isinstance(config, dict):
             config = OllamaConfig(**config)
         super().__init__(config)
@@ -39,8 +43,12 @@ class OllamaModelManager(BaseModelManager):
             logger.error(f"Command failed: {e.stderr}")
             raise
 
-    def load_model(self):
-        """Load the model (Ollama handles this internally)."""
+    def load_model(self) -> None:
+        """Load the model (Ollama handles this internally).
+
+        This method ensures the model is available locally by pulling it if necessary.
+        The actual model loading is handled internally by Ollama.
+        """
         # Check if model exists locally
         try:
             self._run_command(f"ollama show {self.config.model_name} --modelfile")
@@ -48,8 +56,6 @@ class OllamaModelManager(BaseModelManager):
         except subprocess.CalledProcessError:
             logger.info(f"Pulling model {self.config.model_name}...")
             self._run_command(f"ollama pull {self.config.model_name}")
-
-        return None, None  # Ollama manages the model internally
 
     def convert_from_hf(
         self,
@@ -107,18 +113,36 @@ class OllamaModelManager(BaseModelManager):
         return str(output_path)
 
     def create_model(self, model_path: Union[str, Path]) -> str:
-        """Create an Ollama model from a GGUF file."""
+        """Create an Ollama model from a GGUF file.
+
+        Args:
+            model_path: Path to the model file
+
+        Returns:
+            Success message
+        """
         modelfile = self.create_modelfile(model_path)
         self._run_command(f"ollama create {self.config.model_name} -f {modelfile}")
         return f"Model {self.config.model_name} created successfully"
 
-    def push_model(self, repo_id: str):
-        """Push the model to Ollama registry."""
+    def push_model(self, repo_id: str) -> str:
+        """Push the model to Ollama registry.
+
+        Args:
+            repo_id: Repository ID to push to
+
+        Returns:
+            Success message
+        """
         self._run_command(f"ollama push {self.config.model_name}:{repo_id}")
         return f"Model {self.config.model_name} pushed to {repo_id}"
 
-    def save_model(self, output_dir: Union[str, Path]):
-        """Save the model (Ollama manages this internally)."""
+    def save_model(self, output_dir: Union[str, Path]) -> None:
+        """Save the model (Ollama manages this internally).
+
+        Args:
+            output_dir: Directory to save the model to (not used, as Ollama manages models internally)
+        """
         logger.info(
             "Ollama manages models internally. Use push_to_hub to save externally."
         )

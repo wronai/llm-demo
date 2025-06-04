@@ -7,7 +7,6 @@ Streamlit + Ollama = Prosty interfejs do modeli językowych
 import json
 import logging
 import os
-import sys
 import time
 import traceback
 from datetime import datetime
@@ -35,7 +34,12 @@ except Exception as e:
     raise
 
 
-def log_http_request(method: str, url: str, headers: Dict = None, body: Any = None):
+def log_http_request(
+    method: str,
+    url: str,
+    headers: Optional[Dict[str, str]] = None,
+    body: Optional[Any] = None,
+) -> None:
     """Logowanie żądań HTTP"""
     if not DEBUG_MODE:
         return
@@ -49,8 +53,12 @@ def log_http_request(method: str, url: str, headers: Dict = None, body: Any = No
         )
 
 
-def log_http_response(response: Any):
-    """Logowanie odpowiedzi HTTP"""
+def log_http_response(response: Any) -> None:
+    """Logowanie odpowiedzi HTTP.
+
+    Args:
+        response: The HTTP response object to log
+    """
     if not DEBUG_MODE:
         return
 
@@ -61,8 +69,11 @@ def log_http_response(response: Any):
             logger.debug(
                 f"Response body: {json.dumps(json.loads(response.text), indent=2, default=str)}"
             )
-        except:
-            logger.debug(f"Response body: {response.text}")
+        except (json.JSONDecodeError, TypeError):
+            logger.debug(f"Response body (raw): {response.text}")
+        except Exception as e:
+            logger.debug(f"Error processing response: {e}")
+            logger.debug(f"Raw response: {response.text}")
 
 
 def stream_response(
@@ -136,8 +147,16 @@ def stream_response(
         yield error_msg
 
 
-def init_session_state():
-    """Initialize session state variables."""
+def init_session_state() -> None:
+    """Initialize session state variables.
+
+    Initializes the following session state variables if they don't exist:
+    - messages: List to store chat messages
+    - model: Default model to use
+    - temperature: Temperature setting for model generation
+    - max_tokens: Maximum number of tokens to generate
+    - system_prompt: System prompt to guide the model's behavior
+    """
     if "messages" not in st.session_state:
         st.session_state.messages = []
     if "model" not in st.session_state:
@@ -154,15 +173,25 @@ def init_session_state():
 
 def get_available_models() -> List[str]:
     """Pobierz dostępne modele z Ollama."""
+    if client is None:
+        logger.error("Ollama client is not initialized")
+        return []
     try:
         response = client.list()
-        return [model["name"] for model in response.get("models", [])]
+        if not response or not isinstance(response, dict):
+            logger.error(f"Unexpected response format: {response}")
+            return []
+        return [
+            model["name"]
+            for model in response.get("models", [])
+            if isinstance(model, dict) and "name" in model
+        ]
     except Exception as e:
         logger.error(f"Błąd podczas pobierania listy modeli: {str(e)}", exc_info=True)
         return []
 
 
-def main():
+def main() -> None:
     # Inicjalizacja stanu sesji
     init_session_state()
 
@@ -191,8 +220,16 @@ def main():
             if st.button("Zainstaluj domyślny model (Mistral 7B)"):
                 with st.spinner("Instalowanie modelu Mistral 7B..."):
                     try:
-                        client.pull("mistral:7b-instruct")
-                        st.rerun()
+                        if client is not None:
+                            client.pull("mistral:7b-instruct")
+                            st.rerun()
+                        else:
+                            st.error(
+                                "Błąd: Połączenie z serwerem Ollama nie zostało nawiązane"
+                            )
+                            logger.error(
+                                "Attempted to pull model but Ollama client is not initialized"
+                            )
                     except Exception as e:
                         st.error(f"Nie udało się zainstalować modelu: {str(e)}")
                         logger.error(f"Błąd instalacji modelu: {str(e)}", exc_info=True)
@@ -338,8 +375,14 @@ def main():
     with col3:
         if st.button("📊 Model Info"):
             try:
-                info = client.show(st.session_state.model)
-                st.json(info)
+                if client is None:
+                    st.error("Błąd: Połączenie z serwerem Ollama nie zostało nawiązane")
+                    logger.error(
+                        "Attempted to show model info but Ollama client is not initialized"
+                    )
+                else:
+                    info = client.show(st.session_state.model)
+                    st.json(info)
             except Exception as e:
                 error_msg = f"Cannot get model info: {str(e)}"
                 logger.error(error_msg)
@@ -374,5 +417,7 @@ if __name__ == "__main__":
             )
             if st.checkbox("Show error details"):
                 st.code(error_msg)
-        except:
-            print(error_msg)  # Fallback to console if Streamlit fails
+        except Exception as ui_error:
+            # Fallback to console if Streamlit fails
+            print(f"Error displaying error in UI: {ui_error}")
+            print(f"Original error: {error_msg}")
