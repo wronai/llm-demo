@@ -1,49 +1,152 @@
-# 🚀 Minimalne LLM + Własny Model - Kompletny Guide
+---
+license: apache-2.0
+base_model:
+- mistralai/Mistral-7B-Instruct-v0.3
+pipeline_tag: translation
+tags:
+- llm
+- devops
+- development
+- polish
+- english
+- python
+- iac
+---
+# 🚀 WronAI - Własny model językowy po polsku
 
-## 🎯 **CZĘŚĆ 1: Uruchomienie w 2 minuty**
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 
-### Szybki start (minimalne rozwiązanie)
+![WronAI Demo](img.png)
+
+Kompletne narzędzie do tworzenia, dostrajania i wdrażania własnych modeli językowych opartych na Mistral 7B, z pełnym wsparciem dla języka polskiego.
+
+## 📋 Spis treści
+- [Szybki start](#-szybki-start)
+- [Funkcje](#-funkcje)
+- [Wymagania](#-wymagania)
+- [Instalacja](#-instalacja)
+- [Użycie](#-użycie)
+- [Struktura projektu](#-struktura-projektu)
+- [Przykłady użycia](#-przykłady-użycia)
+- [Wdrażanie](#-wdrażanie)
+- [Licencja](#-licencja)
+
+## 🚀 Szybki start
+
+### Wymagania wstępne
+- Python 3.8+
+- [Ollama](https://ollama.ai/) (zalecane)
+- CUDA (opcjonalne, do akceleracji GPU)
+
+### Instalacja
 ```bash
-# 1. Sklonuj pliki
-git clone <your-repo>
-cd minimal-llm
+# 1. Sklonuj repozytorium
+git clone https://github.com/wronai/llm-demo.git
+cd llm-demo
 
-# 2. Uruchom wszystko jedną komendą
-chmod +x quick-start.sh
-./quick-start.sh
+# 2. Utwórz i aktywuj środowisko wirtualne
+python -m venv .venv
+source .venv/bin/activate  # Linux/Mac
+# lub
+.venv\Scripts\activate    # Windows
 
-# 3. Otwórz przeglądarkę
-# http://localhost:8501 - Streamlit UI
-# http://localhost:11434 - Ollama API
-```
-
-### Co się dzieje pod spodem?
-- **Ollama** - pobiera i uruchamia Mistral 7B
-- **Streamlit** - prosty chat interface
-- **Docker** - wszystko w kontenerach
-- **Minimalne zależności** - tylko 3 pakiety Python!
-
-## 📁 **Struktura projektu (minimalna)**
-```
-minimal-llm/
-├── docker-compose.yml       # 1 plik - cała infrastruktura
-├── Dockerfile              # Minimalne image
-├── requirements.txt         # 3 pakiety
-├── quick-start.sh          # 1 komenda = pełny setup
-└── app/
-    └── main.py             # 50 linijek = pełny chat
-```
-
-## 🎯 **CZĘŚĆ 2: Stwórz własny model LLM**
-
-### Krok 1: Przygotowanie środowiska
-```bash
-# Instalacja zależności do fine-tuningu
+# 3. Zainstaluj zależności
 pip install -r model_requirements.txt
-
-# Login do Hugging Face (do publikacji)
-huggingface-cli login
 ```
+
+### Uruchomienie demo
+```bash
+# Uruchom interfejs webowy
+streamlit run app/main.py
+```
+
+## 💻 Przykłady kodu
+
+### Rozmowa z modelem
+```python
+import requests
+
+response = requests.post(
+    "http://localhost:11434/api/generate",
+    json={
+        "model": "wronai",
+        "prompt": "Napisz krótki wiersz o sztucznej inteligencji"
+    }
+)
+print(response.json()["response"])
+```
+
+### Integracja z Pythonem
+```python
+from transformers import pipeline
+
+# Załaduj model
+pipe = pipeline("text-generation", model="wronai")
+
+# Wygeneruj tekst
+result = pipe("Jakie są zalety uczenia maszynowego?")
+print(result[0]["generated_text"])
+```
+
+## ✨ Funkcje
+
+- **Gotowy model WronAI** - Działa od razu po zainstalowaniu
+- **Dostosowywanie** - Możliwość dostrojenia pod własne potrzeby
+- **Interfejs webowy** - Prosty interfejs do rozmowy z modelem
+- **Obsługa GPU** - Pełne wsparcie dla akceleracji sprzętowej
+- **Gotowy do produkcji** - Łatwe wdrożenie z Dockerem
+
+## 🛠️ Wymagania
+
+- System operacyjny: Linux, macOS lub Windows (z WSL2)
+- RAM: Minimum 16GB (32GB zalecane)
+- Dysk: Minimum 10GB wolnego miejsca
+- Karta graficzna: NVIDIA z obsługą CUDA (opcjonalnie)
+
+## 📁 Struktura projektu
+
+```
+llm-demo/
+├── app/                    # Aplikacja Streamlit
+│   └── main.py             # Główny plik aplikacji
+├── models/                 # Modele i wagi
+├── data/                   # Zbiory danych
+├── scripts/                # Przydatne skrypty
+├── docker-compose.yml       # Konfiguracja Docker Compose
+├── Dockerfile              # Konfiguracja kontenera
+├── requirements.txt         # Zależności Pythona
+├── model_requirements.txt   # Zależności do modeli
+└── README.md               # Ten plik
+```
+
+## 🚀 Użycie
+
+### Uruchomienie modelu WronAI
+
+```bash
+# Upewnij się, że Ollama jest uruchomiony
+ollama serve &
+
+
+# Uruchom model WronAI
+ollama run wronai "Cześć! Jak mogę Ci pomóc?"
+```
+
+### Dostosowywanie modelu
+
+1. Przygotuj dane treningowe w formacie JSONL:
+```json
+{"instruction": "Napisz wiadomość powitalną", "input": "", "output": "Witaj! Jak mogę Ci pomóc?"}
+{"instruction": "Wyjaśnij czym jest AI", "input": "", "output": "Sztuczna inteligencja to dziedzina informatyki..."}
+```
+
+2. Uruchom proces dostrajania:
+```bash
+python create_custom_model.py
+```
+
+3. Wybierz odpowiednią opcję z menu.
 
 ### Krok 2: Przygotowanie danych
 ```bash
@@ -255,7 +358,106 @@ def generate(prompt: str):
 # modal deploy
 ```
 
-## 🎯 **CZĘŚĆ 4: Frontend opcje**
+## 🚀 Wdrażanie
+
+### Z Dockerem
+
+```bash
+# Zbuduj i uruchom kontenery
+docker-compose up --build
+
+# Tylko budowanie
+# docker-compose build
+
+# Uruchomienie w tle
+# docker-compose up -d
+
+# Wyświetl logi
+# docker-compose logs -f
+```
+
+### Konfiguracja środowiska produkcyjnego
+
+1. **Nginx jako reverse proxy**
+   ```nginx
+   server {
+       listen 80;
+       server_name twojadomena.pl;
+
+       location / {
+           proxy_pass http://localhost:8501;
+           proxy_http_version 1.1;
+           proxy_set_header Upgrade $http_upgrade;
+           proxy_set_header Connection 'upgrade';
+           proxy_set_header Host $host;
+           proxy_cache_bypass $http_upgrade;
+       }
+   }
+   ```
+
+2. **Konfiguracja systemd**
+   ```ini
+   # /etc/systemd/system/wronai.service
+   [Unit]
+   Description=WronAI Service
+   After=network.target
+
+   [Service]
+   User=www-data
+   WorkingDirectory=/path/to/llm-demo
+   ExecStart=/usr/bin/docker-compose up
+   Restart=always
+
+   [Install]
+   WantedBy=multi-user.target
+   ```
+
+3. **Monitorowanie**
+   - Użyj `docker stats` do monitorowania zużycia zasobów
+   - Skonfiguruj alerty w przypadku awarii
+   - Regularnie sprawdzaj logi aplikacji
+
+## 🛠️ Utrzymanie i rozwój
+
+### Testowanie
+```bash
+# Uruchom testy jednostkowe
+pytest tests/
+
+# Sprawdź jakość kodu
+flake8 .
+# Sprawdź bezpieczeństwo zależności
+safety check
+```
+
+### Wersjonowanie
+
+Używamy [SemVer](https://semver.org/) do wersjonowania. Dostępne wersje możesz zobaczyć w [tagach repozytorium](https://github.com/wronai/llm-demo/tags).
+
+## 🤝 Kontrybucja
+
+1. Sforkuj repozytorium
+2. Utwórz nowy branch (`git checkout -b feature/nowa-funkcjonalnosc`)
+3. Zatwierdź zmiany (`git commit -am 'Dodano nową funkcjonalność'`)
+4. Wypchnij zmiany (`git push origin feature/nowa-funkcjonalnosc`)
+5. Otwórz Pull Request
+
+## 📜 Licencja
+
+Ten projekt jest dostępny na licencji MIT - zobacz plik [LICENSE](LICENSE) aby poznać szczegóły.
+
+## 📞 Kontakt
+
+- **Strona internetowa**: [wronai.pl](https://wronai.pl)
+- **Email**: kontakt@wronai.pl
+- **Twitter**: [@wronai](https://twitter.com/wronai)
+
+---
+
+<div align="center">
+  <p>Made with ❤️ by <a href="https://wronai.pl">WronAI Team</a></p>
+  <p>Jeśli podoba Ci się ten projekt, daj nam ⭐ na <a href="https://github.com/wronai/llm-demo">GitHubie</a>!</p>
+</div>
 
 ### **1. Streamlit (Python)**
 ```python

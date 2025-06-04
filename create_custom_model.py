@@ -223,16 +223,10 @@ PARAMETER top_k 40
 PARAMETER num_ctx 2048
 
 # System prompt
-SYSTEM """
-Jesteś pomocnym asystentem AI stworzonym specjalnie dla polskich użytkowników.
-Odpowiadasz w języku polskim, jesteś precyzyjny i pomocny.
-Specjalizujesz się w programowaniu, technologii i sztucznej inteligencji.
-"""
+SYSTEM "Jesteś pomocnym asystentem AI stworzonym specjalnie dla polskich użytkowników.\nOdpowiadasz w języku polskim, jesteś precyzyjny i pomocny.\nSpecjalizujesz się w programowaniu, technologii i sztucznej inteligencji."
 
 # Chat template dla Mistral
-TEMPLATE """<s>[INST] {{ if .System }}{{ .System }}
-
-{{ end }}{{ .Prompt }} [/INST] {{ .Response }}</s>"""
+TEMPLATE "<s>[INST] {{ if .System }}{{ .System }}{{ end }}{{ .Prompt }} [/INST] {{ .Response }}</s>"
 
 # Metadata
 PARAMETER num_predict 256
