@@ -1,26 +1,51 @@
-.PHONY: help install build up down stop restart logs clean test lint format check-env open open-ui open-ollama
+.PHONY: help install build up down stop restart logs clean test lint format check-env \
+	model-install model-create model-run model-push model-pull model-list \
+	venv venv-clean deps deps-update \
+	open open-ui open-ollama open-docs
 
 # Default target
 help:
-	@echo "\nLLM Demo - Available commands:\n"
-	@echo "  make install         Install Python dependencies"
-	@echo "  make build           Build Docker containers"
-	@echo "  make up              Start all services in detached mode"
-	@echo "  make down            Stop and remove all containers, networks, and volumes"
-	@echo "  make stop            Stop all running containers"
-	@echo "  make restart         Restart all services"
-	@echo "  make logs            Follow container logs"
-	@echo "  make logs-ollama     Follow Ollama container logs"
-	@echo "  make logs-ui         Follow Streamlit UI logs"
-	@echo "  make clean           Remove all containers, networks, and volumes"
-	@echo "  make test            Run tests"
-	@echo "  make lint            Run linter"
-	@echo "  make format          Format code"
-	@echo "  make shell-ollama    Open shell in Ollama container"
-	@echo "  make shell-ui        Open shell in Streamlit UI container"
-	@echo "  make open           Open all services in browser"
-	@echo "  make open-ui        Open Streamlit UI in browser"
-	@echo "  make open-ollama    Open Ollama API in browser"
+	@echo "\n🚀 WronAI - Available commands:\n"
+	@echo "  Environment:"
+	@echo "    make venv           Create Python virtual environment"
+	@echo "    make deps           Install Python dependencies"
+	@echo "    make deps-update    Update all Python dependencies"
+	@echo "    make venv-clean     Remove virtual environment"
+
+	@echo "\n  Docker & Services:"
+	@echo "    make build          Build Docker containers"
+	@echo "    make up             Start all services in detached mode"
+	@echo "    make down           Stop and remove all containers, networks, and volumes"
+	@echo "    make stop           Stop all running containers"
+	@echo "    make restart        Restart all services"
+	@echo "    make logs           Follow container logs"
+	@echo "    make logs-ollama    Follow Ollama container logs"
+	@echo "    make logs-ui        Follow Streamlit UI logs"
+	@echo "    make clean          Remove all containers, networks, and volumes"
+
+	@echo "\n  Model Management:"
+	@echo "    make model-install  Install model dependencies"
+	@echo "    make model-create   Create Ollama model from Modelfile"
+	@echo "    make model-run      Run the WronAI model"
+	@echo "    make model-push     Push model to Ollama registry"
+	@echo "    make model-pull     Pull model from Ollama registry"
+	@echo "    make model-list     List available models"
+
+	@echo "\n  Development:"
+	@echo "    make test           Run tests"
+	@echo "    make lint           Run linter"
+	@echo "    make format         Format code"
+	@echo "    make docs           Generate documentation"
+
+	@echo "\n  Shell Access:"
+	@echo "    make shell-ollama   Open shell in Ollama container"
+	@echo "    make shell-ui       Open shell in Streamlit UI container"
+
+	@echo "\n  Open in Browser:"
+	@echo "    make open           Open all services in browser"
+	@echo "    make open-ui        Open Streamlit UI in browser"
+	@echo "    make open-ollama    Open Ollama API in browser"
+	@echo "    make open-docs      Open documentation in browser"
 
 # Check if .env file exists
 check-env:
@@ -29,11 +54,31 @@ check-env:
 		exit 1; \
 	fi
 
-# Install Python dependencies
-install:
+# Virtual Environment
+venv:
+	@echo "Creating Python virtual environment..."
+	python -m venv .venv
+	@echo "\nTo activate virtual environment, run:"
+	@echo "  source .venv/bin/activate  # Linux/Mac"
+	@echo "  .venv\\Scripts\\activate   # Windows"
+
+venv-clean:
+	@echo "Removing virtual environment..."
+	rm -rf .venv
+
+# Dependencies
+deps: venv
 	@echo "Installing Python dependencies..."
-	python -m pip install --upgrade pip
-	pip install -r requirements.txt
+	. .venv/bin/activate && \
+	pip install --upgrade pip && \
+	pip install -r requirements.txt -r model_requirements.txt
+
+deps-update: venv
+	@echo "Updating Python dependencies..."
+	. .venv/bin/activate && \
+	pip install --upgrade pip && \
+	pip freeze --local | grep -v '^\\.' | cut -d = -f 1 | xargs -n1 pip install -U && \
+	pip install -r requirements.txt -r model_requirements.txt
 
 # Build Docker containers
 build: check-env
@@ -79,23 +124,53 @@ logs-ui:
 # Alias for stop (for backward compatibility)
 clean: stop
 
-# Run tests
+# Model Management
+model-install:
+	@echo "Installing model dependencies..."
+	. .venv/bin/activate && \
+	pip install -r model_requirements.txt
+
+model-create:
+	@echo "Creating Ollama model from Modelfile..."
+	ollama create wronai -f Modelfile
+
+model-run:
+	@echo "Running WronAI model..."
+	ollama run wronai
+
+model-push:
+	@echo "Pushing model to Ollama registry..."
+	ollama push wronai
+
+model-pull:
+	@echo "Pulling latest model..."
+	ollama pull wronai
+
+model-list:
+	@echo "Available models:"
+	ollama list
+
+# Development
 test:
 	@echo "Running tests..."
-	# Add your test command here
-	# Example: python -m pytest tests/
+	. .venv/bin/activate && \
+	pytest -v tests/
 
-# Lint code
 lint:
 	@echo "Running linter..."
-	# Add your lint command here
-	# Example: pylint app/
+	. .venv/bin/activate && \
+	flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics && \
+	flake8 . --count --max-complexity=10 --max-line-length=127 --statistics
 
-# Format code
 format:
 	@echo "Formatting code..."
-	# Add your format command here
-	# Example: black app/
+	. .venv/bin/activate && \
+	black . && \
+	isort .
+
+docs:
+	@echo "Generating documentation..."
+	@# Add documentation generation command here
 
 # Open shell in Ollama container
 shell-ollama:
@@ -117,3 +192,8 @@ open-ui:
 open-ollama:
 	@echo "Opening Ollama API..."
 	@xdg-open http://localhost:11436 2>/dev/null || open http://localhost:11436 2>/dev/null || start http://localhost:11436 2>/dev/null || echo "Could not open the browser. Please open http://localhost:11436 manually"
+
+# Open documentation in browser
+open-docs:
+	@echo "Opening documentation..."
+	@xdg-open https://github.com/wronai/llm-demo#readme 2>/dev/null || open https://github.com/wronai/llm-demo#readme 2>/dev/null || start https://github.com/wronai/llm-demo#readme 2>/dev/null || echo "Could not open the browser. Please open https://github.com/wronai/llm-demo#readme manually"

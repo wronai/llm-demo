@@ -213,6 +213,8 @@ Skrypt `create_custom_model.py` oferuje interaktywne menu z następującymi opcj
 python create_custom_model.py
 ```
 
+![img_2.png](img_2.png)
+
 Dostępne opcje:
 1. Stwórz przykładowy dataset
 2. Wykonaj fine-tuning modelu
