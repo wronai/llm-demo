@@ -4,12 +4,13 @@
 Tests both llama.cpp and Ollama integration
 """
 
+import json
 import os
 import subprocess
 import time
-import requests
-import json
 from pathlib import Path
+
+import requests
 
 
 def test_llamacpp_direct():
@@ -30,7 +31,7 @@ def test_llamacpp_direct():
     test_prompts = [
         "Hello, how are you?",
         "Wyjaśnij co to jest Docker",
-        "Napisz prostą funkcję w Pythonie"
+        "Napisz prostą funkcję w Pythonie",
     ]
 
     for i, prompt in enumerate(test_prompts, 1):
@@ -38,18 +39,28 @@ def test_llamacpp_direct():
 
         cmd = [
             llamacpp_main,
-            "-m", model_file,
-            "-p", prompt,
-            "-n", "100",
-            "--temp", "0.7",
-            "--top-p", "0.9"
+            "-m",
+            model_file,
+            "-p",
+            prompt,
+            "-n",
+            "100",
+            "--temp",
+            "0.7",
+            "--top-p",
+            "0.9",
         ]
 
         try:
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
             if result.returncode == 0:
                 print("✅ Response generated successfully")
-                print("Response preview:", result.stdout[:200] + "..." if len(result.stdout) > 200 else result.stdout)
+                print(
+                    "Response preview:",
+                    result.stdout[:200] + "..."
+                    if len(result.stdout) > 200
+                    else result.stdout,
+                )
             else:
                 print(f"❌ Error: {result.stderr}")
                 return False
@@ -92,7 +103,7 @@ def test_ollama_integration():
     test_prompts = [
         "Cześć! Kim jesteś?",
         "Jak zoptymalizować kod Python?",
-        "Co to jest machine learning?"
+        "Co to jest machine learning?",
     ]
 
     for i, prompt in enumerate(test_prompts, 1):
@@ -105,7 +116,12 @@ def test_ollama_integration():
 
             if result.returncode == 0:
                 print("✅ Ollama CLI response successful")
-                print("Response preview:", result.stdout[:200] + "..." if len(result.stdout) > 200 else result.stdout)
+                print(
+                    "Response preview:",
+                    result.stdout[:200] + "..."
+                    if len(result.stdout) > 200
+                    else result.stdout,
+                )
             else:
                 print(f"❌ Ollama CLI error: {result.stderr}")
                 continue
@@ -124,14 +140,14 @@ def test_ollama_integration():
         test_data = {
             "model": model_name,
             "prompt": "Hello! Test API call.",
-            "stream": False
+            "stream": False,
         }
 
         response = requests.post(api_url, json=test_data, timeout=60)
         if response.status_code == 200:
             data = response.json()
             print("✅ Ollama API response successful")
-            print("API Response:", data.get('response', 'No response field')[:100])
+            print("API Response:", data.get("response", "No response field")[:100])
         else:
             print(f"❌ API Error: {response.status_code}")
             return False
@@ -153,7 +169,7 @@ def benchmark_model():
         return
 
     # Get file size
-    file_size = os.path.getsize(model_file) / (1024 ** 3)  # GB
+    file_size = os.path.getsize(model_file) / (1024**3)  # GB
     print(f"📁 Model size: {file_size:.2f} GB")
 
     # Benchmark prompt
@@ -165,10 +181,14 @@ def benchmark_model():
 
         cmd = [
             llamacpp_main,
-            "-m", model_file,
-            "-p", benchmark_prompt,
-            "-n", "100",
-            "--temp", "0.7"
+            "-m",
+            model_file,
+            "-p",
+            benchmark_prompt,
+            "-n",
+            "100",
+            "--temp",
+            "0.7",
         ]
 
         start_time = time.time()
@@ -199,11 +219,7 @@ def main():
     # Check prerequisites
     print("🔍 Checking prerequisites...")
 
-    required_files = [
-        "my_custom_model.gguf",
-        "./llama.cpp/main",
-        "Modelfile"
-    ]
+    required_files = ["my_custom_model.gguf", "./llama.cpp/main", "Modelfile"]
 
     missing_files = [f for f in required_files if not os.path.exists(f)]
 
@@ -261,7 +277,7 @@ def main():
     print("\n# Ollama API:")
     print("curl -X POST http://localhost:11434/api/generate \\")
     print("  -H 'Content-Type: application/json' \\")
-    print("  -d '{\"model\": \"my-custom-model\", \"prompt\": \"Hello!\"}'")
+    print('  -d \'{"model": "my-custom-model", "prompt": "Hello!"}\'')
 
     print("\n# Python integration:")
     print("import ollama")

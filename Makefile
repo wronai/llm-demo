@@ -172,32 +172,34 @@ model-install:
 	. .venv/bin/activate && \
 	pip install -r model_requirements.txt
 
-model-create-simple:
-	@echo "Creating Ollama model from simplified Modelfile..."
-	ollama create wronai -f Modelfile.simple
+# Pull required models
+model-pull:
+	@echo "Pulling required models..."
+	ollama pull mistral:7b-instruct
 
-model-create-full:
-	@echo "Creating Ollama model from full Modelfile..."
-	@if [ ! -f "my_custom_model.gguf" ]; then \
-		echo "Error: my_custom_model.gguf not found. Please convert your model first."; \
+model-list:
+	@echo "Available models:"
+	ollama list
+
+# Package Commands
+run:
+	@echo "Starting WronAI..."
+	python -m wronai.cli
+
+web:
+	@echo "Starting WronAI Web UI..."
+	streamlit run wronai/web/app.py
+
+chat:
+	@echo "Starting interactive chat..."
+	python -m wronai.cli chat
+
+query:
+	@if [ -z "$(PROMPT)" ]; then \
+		echo "Error: PROMPT environment variable not set. Usage: make query PROMPT=\"your prompt here\""; \
 		exit 1; \
 	fi
-	ollama create wronai -f Modelfile
-
-# Alias for backward compatibility
-model-create: model-create-simple
-
-model-run:
-	@echo "Running WronAI model..."
-	ollama run wronai
-
-model-push:
-	@echo "Pushing model to Ollama registry..."
-	ollama push wronai
-
-model-pull:
-	@echo "Pulling latest model..."
-	ollama pull wronai
+	@python -m wronai.cli query "$(PROMPT)"
 
 model-list:
 	@echo "Available models:"
