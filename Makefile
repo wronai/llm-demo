@@ -62,7 +62,14 @@ help:
 # Check if .env file exists
 check-env:
 	@if [ ! -f .env ]; then \
-		echo "Error: .env file not found. Please create one from .env.example"; \
+		echo "Error: .env file not found. Creating from .env.example..."; \
+		cp -n .env.example .env || true; \
+	fi
+
+# Check if Docker is running
+check-docker:
+	@if ! docker info > /dev/null 2>&1; then \
+		echo "Error: Docker is not running. Please start Docker and try again."; \
 		exit 1; \
 	fi
 
@@ -95,7 +102,11 @@ deps-update: venv
 install-dev: deps
 	@echo "Installing package in development mode..."
 	. .venv/bin/activate && \
-	pip install -e .[dev] && \
+	pip install -e ".[dev]" && \
+	if ! command -v pre-commit &> /dev/null; then \
+		echo "Installing pre-commit..."; \
+		pip install pre-commit; \
+	fi && \
 	pre-commit install
 
 # Install for CI environment
@@ -152,6 +163,12 @@ clean: stop
 # Model Management
 model-install:
 	@echo "Installing model dependencies..."
+	@if [ ! -f "model_requirements.txt" ]; then \
+		echo "model_requirements.txt not found. Creating with default dependencies..."; \
+		echo "torch>=2.0.0" > model_requirements.txt; \
+		echo "transformers>=4.35.0" >> model_requirements.txt; \
+		echo "peft>=0.7.0" >> model_requirements.txt; \
+	fi
 	. .venv/bin/activate && \
 	pip install -r model_requirements.txt
 
@@ -189,8 +206,9 @@ model-list:
 # Development
 test: install-dev
 	@echo "Running tests with coverage..."
+	@mkdir -p tests  # Ensure tests directory exists
 	. .venv/bin/activate && \
-	pytest --cov=wronai --cov-report=term-missing -v tests/
+	pytest --cov=wronai --cov-report=term-missing -v tests/ || (echo "\n💡 No tests found. Consider adding tests to the tests/ directory." && exit 1)
 
 test-fast: install-dev
 	@echo "Running tests quickly..."
